@@ -10,6 +10,28 @@ oShell.CurrentDirectory = scriptPath
 ' Пытаемся запустить с py launcher
 On Error Resume Next
 
+' Проверяем requests и при необходимости ставим зависимости
+cmd = "py -3 -c ""import requests"""
+result = oShell.Run(cmd, 0, True)
+
+If result <> 0 Then
+    Err.Clear
+    cmd = "python -c ""import requests"""
+    result = oShell.Run(cmd, 0, True)
+End If
+
+If result <> 0 Then
+    Err.Clear
+    cmd = "py -3 -m pip install -r """ & scriptPath & "\channel_requirements.txt"""
+    result = oShell.Run(cmd, 1, True)
+
+    If result <> 0 Then
+        Err.Clear
+        cmd = "python -m pip install -r """ & scriptPath & "\channel_requirements.txt"""
+        result = oShell.Run(cmd, 1, True)
+    End If
+End If
+
 ' Вариант 1: py -3 pythonw
 cmd = "py -3 -m pyw """ & scriptPath & "\youtube_channel_collector.py"""
 result = oShell.Run(cmd, 0, False)
@@ -17,16 +39,16 @@ result = oShell.Run(cmd, 0, False)
 If Err.Number <> 0 Then
     Err.Clear
     
-    ' Вариант 2: py python
-    cmd = "py -3 """ & scriptPath & "\youtube_channel_collector.py"""
+    ' Вариант 2: pythonw
+    cmd = "pythonw """ & scriptPath & "\youtube_channel_collector.py"""
     result = oShell.Run(cmd, 0, False)
     
     If Err.Number <> 0 Then
         Err.Clear
         
-        ' Вариант 3: pythonw
-        cmd = "pythonw """ & scriptPath & "\youtube_channel_collector.py"""
-        result = oShell.Run(cmd, 0, False)
+        ' Вариант 3: python (с консолью, если pythonw недоступен)
+        cmd = "python """ & scriptPath & "\youtube_channel_collector.py"""
+        result = oShell.Run(cmd, 1, False)
         
         If Err.Number <> 0 Then
             MsgBox "Ошибка запуска Python!" & vbCrLf & vbCrLf & _
